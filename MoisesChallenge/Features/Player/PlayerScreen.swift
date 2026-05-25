@@ -45,8 +45,21 @@ struct PlayerScreen: View {
                 }
                 .padding(.horizontal, 24)
 
-                progressSection
-                playbackControls
+                PlayerProgressView(
+                    progress: $scrubProgress,
+                    currentTimeText: viewModel.currentTimeText,
+                    remainingTimeText: viewModel.remainingTimeText,
+                    onScrub: viewModel.scrub(to:)
+                )
+                .padding(.horizontal, 24)
+
+                PlayerControlsView(
+                    isPlaying: viewModel.isPlaying,
+                    onTogglePlayback: viewModel.togglePlayback,
+                    onSeekBackward: viewModel.seekBackward,
+                    onSeekForward: viewModel.seekForward
+                )
+                .padding(.top, 8)
 
                 if let message = viewModel.message {
                     Text(message)
@@ -63,9 +76,7 @@ struct PlayerScreen: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    isShowingOptions = true
-                } label: {
+                Button { isShowingOptions = true } label: {
                     Image(systemName: "ellipsis")
                 }
                 .accessibilityLabel("More options")
@@ -80,71 +91,11 @@ struct PlayerScreen: View {
                 }
             }
         }
-        .onAppear {
-            viewModel.appear()
-        }
-        .onDisappear {
-            viewModel.disappear()
-        }
+        .onAppear { viewModel.appear() }
+        .onDisappear { viewModel.disappear() }
         .onChange(of: viewModel.currentTime) { _, newValue in
             guard viewModel.duration > 0 else { return }
             scrubProgress = newValue / viewModel.duration
         }
-    }
-
-    private var progressSection: some View {
-        VStack(spacing: 6) {
-            Slider(value: Binding(
-                get: { scrubProgress },
-                set: { newValue in
-                    scrubProgress = newValue
-                    viewModel.scrub(to: newValue)
-                }
-            ))
-            .tint(.white)
-
-            HStack {
-                Text(viewModel.currentTimeText)
-                Spacer()
-                Text(viewModel.remainingTimeText)
-            }
-            .font(.caption)
-            .foregroundStyle(AppTheme.textSecondary)
-        }
-        .padding(.horizontal, 24)
-    }
-
-    private var playbackControls: some View {
-        HStack(spacing: 48) {
-            Button {
-                viewModel.seekBackward()
-            } label: {
-                Image(systemName: "gobackward.15")
-                    .font(.system(size: 28, weight: .semibold))
-            }
-            .accessibilityLabel("Go backward 15 seconds")
-
-            Button {
-                viewModel.togglePlayback()
-            } label: {
-                Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
-                    .font(.system(size: 28, weight: .bold))
-                    .foregroundStyle(AppTheme.textPrimary)
-                    .frame(width: 72, height: 72)
-                    .background(Color(white: 0.2), in: Circle())
-            }
-            .accessibilityLabel(viewModel.isPlaying ? "Pause preview" : "Play preview")
-
-            Button {
-                viewModel.seekForward()
-            } label: {
-                Image(systemName: "goforward.15")
-                    .font(.system(size: 28, weight: .semibold))
-            }
-            .accessibilityLabel("Go forward 15 seconds")
-        }
-        .buttonStyle(.plain)
-        .foregroundStyle(AppTheme.textPrimary)
-        .padding(.top, 8)
     }
 }

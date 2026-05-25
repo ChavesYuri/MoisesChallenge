@@ -5,8 +5,6 @@ struct AppView: View {
 
     @State private var showSplash = true
     @State private var path = NavigationPath()
-    @State private var isSearchBarVisible = true
-    @State private var focusSearchTrigger = false
 
     var body: some View {
         Group {
@@ -23,7 +21,6 @@ struct AppView: View {
             withAnimation(.easeOut(duration: 0.35)) {
                 showSplash = false
             }
-
         }
     }
 
@@ -47,7 +44,9 @@ struct AppView: View {
                         onShowAlbum: { path.append(Route.album(song)) }
                     )
                 case .album(let song):
-                    AlbumScreen(viewModel: AlbumViewModel(seedSong: song, repository: composition.repository))
+                    AdaptiveAlbumScreen(
+                        viewModel: AlbumViewModel(seedSong: song, repository: composition.repository)
+                    )
                 }
             }
         }
@@ -58,15 +57,4 @@ struct AppView: View {
 enum Route: Hashable {
     case player(Song)
     case album(Song)
-}
-
-extension Notification.Name {
-    static let focusSongsSearch = Notification.Name("focusSongsSearch")
-}
-
-struct SearchBarVisibilityKey: PreferenceKey {
-    nonisolated(unsafe) static var defaultValue = true
-    static func reduce(value: inout Bool, nextValue: () -> Bool) {
-        value = nextValue()
-    }
 }

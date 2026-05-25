@@ -73,6 +73,8 @@ final class SongsViewModel {
         Task {
             try? await repository.markPlayed(song)
             await loadRecentlyPlayed()
+            let recent = (try? await repository.recentlyPlayed(limit: 12)) ?? []
+            WatchConnectivityService.shared.publish(recentlyPlayed: recent, currentSong: song)
         }
     }
 

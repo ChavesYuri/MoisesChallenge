@@ -6,8 +6,8 @@ enum SongsUIComposer {
         repository: SongRepository,
         onSelectSong: @escaping (Song) -> Void,
         onShowAlbum: @escaping (Song) -> Void
-    ) -> SongsScreen {
-        SongsScreen(
+    ) -> AdaptiveSongsScreen {
+        AdaptiveSongsScreen(
             viewModel: SongsViewModel(repository: repository),
             onSelectSong: onSelectSong,
             onShowAlbum: onShowAlbum

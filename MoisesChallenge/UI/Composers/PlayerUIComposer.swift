@@ -6,8 +6,8 @@ enum PlayerUIComposer {
         song: Song,
         repository: SongRepository,
         onShowAlbum: @escaping () -> Void
-    ) -> PlayerScreen {
-        PlayerScreen(
+    ) -> AdaptivePlayerScreen {
+        AdaptivePlayerScreen(
             viewModel: PlayerViewModel(song: song, repository: repository),
             onShowAlbum: onShowAlbum
         )

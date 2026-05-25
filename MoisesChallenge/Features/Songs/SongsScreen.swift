@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct SongsScreen: View {
-    @State var isSearchTextFieldVisible: Bool = true
+    @State private var isSearchTextFieldVisible = true
     @State private var viewModel: SongsViewModel
     @FocusState private var isSearchFocused
     @State private var optionsSong: Song?
@@ -34,12 +34,8 @@ struct SongsScreen: View {
                 }
             }
             .background(AppTheme.background)
-            .refreshable {
-                await viewModel.refresh()
-            }
-            .task {
-                await viewModel.onAppear()
-            }
+            .refreshable { await viewModel.refresh() }
+            .task { await viewModel.onAppear() }
             .toolbar {
                 if !isSearchTextFieldVisible {
                     ToolbarItem(placement: .topBarLeading) {
@@ -81,9 +77,7 @@ struct SongsScreen: View {
                 .autocorrectionDisabled()
                 .foregroundStyle(AppTheme.textPrimary)
                 .tint(AppTheme.accent)
-                .onSubmit {
-                    Task { await viewModel.submitSearch() }
-                }
+                .onSubmit { Task { await viewModel.submitSearch() } }
         }
         .padding(.horizontal, 16)
         .frame(height: 44)
@@ -93,9 +87,7 @@ struct SongsScreen: View {
         .padding(.bottom, 16)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Search songs")
-        .onScrollVisibilityChange { isVisible in
-            isSearchTextFieldVisible = isVisible
-        }
+        .onScrollVisibilityChange { isSearchTextFieldVisible = $0 }
     }
 
     private var recentlyPlayedSection: some View {
@@ -117,11 +109,16 @@ struct SongsScreen: View {
         LazyVStack(spacing: 0) {
             ForEach(viewModel.songs) { song in
                 songRow(song)
-                    .task {
-                        await viewModel.loadMoreIfNeeded(currentSong: song)
-                    }
+                    .task { await viewModel.loadMoreIfNeeded(currentSong: song) }
             }
-            footer
+
+            SongsListFooter(
+                state: viewModel.state,
+                hasMorePages: viewModel.hasMorePages,
+                songsEmpty: viewModel.songs.isEmpty,
+                recentlyPlayedEmpty: viewModel.recentlyPlayed.isEmpty,
+                onRetry: { Task { await viewModel.submitSearch() } }
+            )
         }
         .padding(.bottom, 24)
     }
@@ -136,9 +133,7 @@ struct SongsScreen: View {
             }
             .buttonStyle(.plain)
 
-            Button {
-                optionsSong = song
-            } label: {
+            Button { optionsSong = song } label: {
                 Image(systemName: "ellipsis")
                     .font(.footnote.bold())
                     .foregroundStyle(AppTheme.textSecondary)
@@ -149,86 +144,8 @@ struct SongsScreen: View {
         }
         .padding(.horizontal, 12)
     }
-
-    @ViewBuilder
-    private var footer: some View {
-        switch viewModel.state {
-        case .idle:
-            if viewModel.recentlyPlayed.isEmpty {
-                ContentUnavailableView(
-                    "Ready when you are",
-                    systemImage: "magnifyingglass",
-                    description: Text("Search for an artist or song to begin.")
-                )
-                .foregroundStyle(AppTheme.textSecondary)
-                .padding(.top, 36)
-            }
-        case .loading, .refreshing:
-            ProgressView("Loading songs")
-                .tint(AppTheme.accent)
-                .foregroundStyle(AppTheme.textSecondary)
-                .padding(.top, 32)
-        case .loadingMore:
-            HStack {
-                Spacer()
-                ProgressView().tint(AppTheme.accent).padding(.vertical, 20)
-                Spacer()
-            }
-        case .empty:
-            ContentUnavailableView(
-                "No songs found",
-                systemImage: "music.note.list",
-                description: Text("Try a different search term.")
-            )
-            .foregroundStyle(AppTheme.textSecondary)
-            .padding(.top, 36)
-        case .error(let message):
-            VStack(spacing: 12) {
-                ContentUnavailableView(
-                    "Something went wrong",
-                    systemImage: "wifi.exclamationmark",
-                    description: Text(message)
-                )
-                Button("Try again") {
-                    Task { await viewModel.submitSearch() }
-                }
-                .buttonStyle(PrimaryButtonStyle())
-                .padding(.horizontal, 20)
-            }
-            .padding(.top, 36)
-        case .loaded:
-            if !viewModel.hasMorePages && !viewModel.songs.isEmpty {
-                Text("End of results")
-                    .font(.caption)
-                    .foregroundStyle(AppTheme.textSecondary)
-                    .padding(.vertical, 20)
-                    .frame(maxWidth: .infinity)
-            }
-        }
-    }
 }
 
 private enum SongsScrollTarget {
     static let searchHeader = "songs-search-header"
-}
-
-#Preview {
-    NavigationStack {
-        SongsScreen(
-            viewModel: SongsViewModel(repository: SongRepositoryStub()),
-            onSelectSong: { _ in },
-            onShowAlbum: { _ in }
-        )
-    }
-}
-
-@MainActor
-final class SongRepositoryStub: SongRepository {
-    func searchSongs(term: String, page: Int, pageSize: Int) async throws -> Paginated<Song> {
-        Paginated(items: [.preview], hasMore: false)
-    }
-
-    func albumSongs(collectionId: Int) async throws -> [Song] { [] }
-    func recentlyPlayed(limit: Int) async throws -> [Song] { [] }
-    func markPlayed(_ song: Song) async throws {}
 }
