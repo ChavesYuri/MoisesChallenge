@@ -36,6 +36,7 @@ struct SongsScreen: View {
             .background(AppTheme.background)
             .refreshable { await viewModel.refresh() }
             .task { await viewModel.onAppear() }
+            .scrollDismissesKeyboard(.immediately)
             .toolbar {
                 if !isSearchTextFieldVisible {
                     ToolbarItem(placement: .topBarLeading) {
@@ -60,6 +61,8 @@ struct SongsScreen: View {
                 optionsSong = nil
                 onShowAlbum(song)
             }
+        }.onAppear {
+            isSearchFocused = true
         }
     }
 

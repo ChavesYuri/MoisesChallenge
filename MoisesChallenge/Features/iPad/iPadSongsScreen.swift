@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct iPadSongsScreen: View {
-    @State var viewModel: SongsViewModel
+    @Bindable var viewModel: SongsViewModel
     @FocusState private var isSearchFocused
     @State private var optionsSong: Song?
     @State private var isSearchVisible = true
@@ -25,6 +25,7 @@ struct iPadSongsScreen: View {
             }
             .background(AppTheme.background)
             .refreshable { await viewModel.refresh() }
+            .scrollDismissesKeyboard(.immediately)
             .task { await viewModel.onAppear() }
             .toolbar {
                 if !isSearchVisible {
@@ -77,25 +78,23 @@ struct iPadSongsScreen: View {
             Text("Recently Played")
                 .font(.title3.bold())
                 .padding(.horizontal, 32)
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 360), spacing: 16)], spacing: 16) {
+            LazyVStack(spacing: 0) {
                 ForEach(viewModel.recentlyPlayed) { song in
-                    songCard(song)
+                    songRow(song)
                 }
             }
-            .padding(.horizontal, 32)
         }
         .padding(.bottom, 24)
     }
 
     private var songsGrid: some View {
         VStack(spacing: 0) {
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 360), spacing: 16)], spacing: 16) {
+            LazyVStack(spacing: 0) {
                 ForEach(viewModel.songs) { song in
-                    songCard(song)
+                    songRow(song)
                         .task { await viewModel.loadMoreIfNeeded(currentSong: song) }
                 }
             }
-            .padding(.horizontal, 32)
 
             SongsListFooter(
                 state: viewModel.state,
@@ -108,13 +107,16 @@ struct iPadSongsScreen: View {
         }
     }
 
-    private func songCard(_ song: Song) -> some View {
+    private func songRow(_ song: Song) -> some View {
         HStack(spacing: 0) {
             Button {
-                viewModel.markPlayed(song)
+                isSearchFocused = false
                 onSelectSong(song)
+                viewModel.markPlayed(song)
             } label: {
                 SongRowView(song: song)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
 
@@ -122,10 +124,17 @@ struct iPadSongsScreen: View {
                 Image(systemName: "ellipsis")
                     .foregroundStyle(AppTheme.textSecondary)
                     .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("More options for \(song.trackName)")
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.leading, 20)
+        .padding(.vertical, 4)
         .background(Color(white: 0.08), in: RoundedRectangle(cornerRadius: 12))
+        .padding(.horizontal, 32)
+        .padding(.vertical, 2)
     }
 }
 
