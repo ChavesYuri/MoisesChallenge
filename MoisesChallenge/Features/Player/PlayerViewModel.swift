@@ -47,7 +47,6 @@ final class PlayerViewModel {
             guard let self else { return }
             currentTime = current
             if total > 0 { duration = total }
-            updateNowPlaying()
         }
 
         configureRemoteCommands()
