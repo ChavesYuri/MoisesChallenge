@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+
+/* Begin PBXBuildFile section */
+		1A4CA0A72FC340000002BAA8 /* MoisesChallengeWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 1A4CA0A02FC340000002BAA8 /* MoisesChallengeWatch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		1A4C9FBE2FC33B5D0002BAA8 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -21,12 +26,20 @@
 			remoteGlobalIDString = 1A4C9FAF2FC33B5C0002BAA8;
 			remoteInfo = MoisesChallenge;
 		};
+		1A4CA0A12FC340000002BAA8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1A4C9FA82FC33B5C0002BAA8 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1A4CA0B02FC340000002BAA8;
+			remoteInfo = MoisesChallengeWatch;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		1A4C9FB02FC33B5C0002BAA8 /* MoisesChallenge.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MoisesChallenge.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A4C9FBD2FC33B5D0002BAA8 /* MoisesChallengeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MoisesChallengeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A4C9FC72FC33B5D0002BAA8 /* MoisesChallengeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MoisesChallengeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		1A4CA0A02FC340000002BAA8 /* MoisesChallengeWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MoisesChallengeWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -43,6 +56,11 @@
 		1A4C9FCA2FC33B5D0002BAA8 /* MoisesChallengeUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = MoisesChallengeUITests;
+			sourceTree = "<group>";
+		};
+		1A4CA0A22FC340000002BAA8 /* MoisesChallengeWatch */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = MoisesChallengeWatch;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -78,6 +96,7 @@
 				1A4C9FB22FC33B5C0002BAA8 /* MoisesChallenge */,
 				1A4C9FC02FC33B5D0002BAA8 /* MoisesChallengeTests */,
 				1A4C9FCA2FC33B5D0002BAA8 /* MoisesChallengeUITests */,
+				1A4CA0A22FC340000002BAA8 /* MoisesChallengeWatch */,
 				1A4C9FB12FC33B5C0002BAA8 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -88,6 +107,7 @@
 				1A4C9FB02FC33B5C0002BAA8 /* MoisesChallenge.app */,
 				1A4C9FBD2FC33B5D0002BAA8 /* MoisesChallengeTests.xctest */,
 				1A4C9FC72FC33B5D0002BAA8 /* MoisesChallengeUITests.xctest */,
+				1A4CA0A02FC340000002BAA8 /* MoisesChallengeWatch.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -102,10 +122,12 @@
 				1A4C9FAC2FC33B5C0002BAA8 /* Sources */,
 				1A4C9FAD2FC33B5C0002BAA8 /* Frameworks */,
 				1A4C9FAE2FC33B5C0002BAA8 /* Resources */,
+				1A4CA0A52FC340000002BAA8 /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				1A4CA0A42FC340000002BAA8 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				1A4C9FB22FC33B5C0002BAA8 /* MoisesChallenge */,
@@ -163,6 +185,27 @@
 			productReference = 1A4C9FC72FC33B5D0002BAA8 /* MoisesChallengeUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+
+		1A4CA0B02FC340000002BAA8 /* MoisesChallengeWatch */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1A4CA0A82FC340000002BAA8 /* Build configuration list for PBXNativeTarget "MoisesChallengeWatch" */;
+			buildPhases = (
+				1A4CA0A32FC340000002BAA8 /* Sources */,
+				1A4CA0A62FC340000002BAA8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				1A4CA0A22FC340000002BAA8 /* MoisesChallengeWatch */,
+			);
+			name = MoisesChallengeWatch;
+			productName = MoisesChallengeWatch;
+			productReference = 1A4CA0A02FC340000002BAA8 /* MoisesChallengeWatch.app */;
+			productType = "com.apple.product-type.application";
+		};
+
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -203,6 +246,7 @@
 				1A4C9FAF2FC33B5C0002BAA8 /* MoisesChallenge */,
 				1A4C9FBC2FC33B5D0002BAA8 /* MoisesChallengeTests */,
 				1A4C9FC62FC33B5D0002BAA8 /* MoisesChallengeUITests */,
+				1A4CA0B02FC340000002BAA8 /* MoisesChallengeWatch */,
 			);
 		};
 /* End PBXProject section */
@@ -229,6 +273,33 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+
+		1A4CA0A32FC340000002BAA8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1A4CA0A52FC340000002BAA8 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				1A4CA0A72FC340000002BAA8 /* MoisesChallengeWatch.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1A4CA0A62FC340000002BAA8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -265,6 +336,11 @@
 			isa = PBXTargetDependency;
 			target = 1A4C9FAF2FC33B5C0002BAA8 /* MoisesChallenge */;
 			targetProxy = 1A4C9FC82FC33B5D0002BAA8 /* PBXContainerItemProxy */;
+		};
+		1A4CA0A42FC340000002BAA8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1A4CA0B02FC340000002BAA8 /* MoisesChallengeWatch */;
+			targetProxy = 1A4CA0A12FC340000002BAA8 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -395,6 +471,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Config/MoisesChallenge.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 272247UTKJ;
@@ -422,6 +499,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Config/MoisesChallenge.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 272247UTKJ;
@@ -528,6 +606,53 @@
 			};
 			name = Release;
 		};
+
+		1A4CA0A92FC340000002BAA8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 272247UTKJ;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Config/Info-Watch.plist;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yuri.MoisesChallenge.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
+			};
+			name = Debug;
+		};
+		1A4CA0AA2FC340000002BAA8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 272247UTKJ;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Config/Info-Watch.plist;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yuri.MoisesChallenge.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
+			};
+			name = Release;
+		};
+
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -563,6 +688,15 @@
 			buildConfigurations = (
 				1A4C9FD82FC33B5D0002BAA8 /* Debug */,
 				1A4C9FD92FC33B5D0002BAA8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1A4CA0A82FC340000002BAA8 /* Build configuration list for PBXNativeTarget "MoisesChallengeWatch" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1A4CA0A92FC340000002BAA8 /* Debug */,
+				1A4CA0AA2FC340000002BAA8 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

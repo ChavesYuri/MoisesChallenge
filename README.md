@@ -1,58 +1,75 @@
 # Moises Music Challenge
 
-iOS music search app built with **Swift 6**, **SwiftUI**, **MVVM**, **Swift concurrency**, **SwiftData**, and a replaceable network layer. Architecture follows the layering patterns used in [EssentialFeed](https://github.com/essentialdeveloper/EssentialFeed) and [EssentialApp](https://github.com/essentialdeveloper/EssentialApp).
+iOS music search app built with **Swift 6**, **SwiftUI**, **MVVM**, **Swift concurrency**, **SwiftData**, and a replaceable network layer. Architecture follows the layering patterns used in EssentialFeed and EssentialApp.
+
+## Platforms
+
+| Platform | Layout | Location |
+|----------|--------|----------|
+| **iPhone** | Phone-first navigation stack | `Features/Songs`, `Features/Player`, `Features/Album` |
+| **iPad** | Adaptive wide layouts (player + queue, album header, song grid) | `Features/iPad/` |
+| **CarPlay** | List templates + Now Playing | `CarPlay/` |
+| **Apple Watch** | Companion app synced via WatchConnectivity | `MoisesChallengeWatch/` |
+
+Adaptive layouts activate when `horizontalSizeClass == .regular` (iPad landscape/portrait).
 
 ## Screens
 
-- **Splash** — gradient `#0086A0` → `#000000` with centered note artwork
-- **Songs (Home)** — search, paginated iTunes results, recently played, pull-to-refresh
-- **Song Details (Player)** — preview playback, ±15s seek, scrubber, album title in navigation bar
-- **More options sheet** — view album (from list or player)
-- **Album** — album artwork header and track list
+- **Splash** — gradient `#0086A0` → `#000000`
+- **Songs** — search, pagination, recently played, pull-to-refresh
+- **Player** — preview playback, scrubber, ±15s seek; iPad adds **Up Next** queue
+- **Album** — track list; iPad uses horizontal album header
+- **More options sheet** — view album, share preview
 
 ## Architecture
 
 ```
 MoisesChallenge/
-├── Catalog Feature/     # Domain models & loader protocols (Song, SongSearchLoader, SongCache)
-├── Catalog API/         # Remote loaders, endpoints, mappers, HTTPClient
-├── Catalog Cache/       # SwiftData store & LocalSongCacheLoader
-├── Shared API/          # Paginated, HTTP abstractions
-├── Composition/         # Decorators, composites, CompositionRoot, MainSongRepository
-├── UI/
-│   ├── Navigation/      # AppView + NavigationStack routes
-│   └── Composers/       # SongsUIComposer, PlayerUIComposer
-├── Features/            # SwiftUI screens + ViewModels (MVVM)
-└── Core/                # Design system, audio playback
+├── Catalog Feature/     # Domain models & loader protocols
+├── Catalog API/         # Remote loaders, endpoints, mappers
+├── Catalog Cache/       # SwiftData store
+├── Shared API/          # Paginated, HTTPClient
+├── Composition/         # CompositionRoot, MainSongRepository
+├── CarPlay/             # CarPlay scene + coordinator
+├── Core/                # Theme, playback, WatchConnectivity
+├── Features/            # SwiftUI + ViewModels
+├── Features/iPad/       # iPad-specific layouts
+└── UI/                  # Navigation + composers
+
+MoisesChallengeWatch/    # watchOS companion (recently played + player UI)
 ```
 
-### Offline-first
+## CarPlay setup
 
-1. Remote search/album loads are wrapped with `SongSearchLoaderCacheDecorator`.
-2. On network failure, `SongSearchLoaderWithFallbackComposite` serves SwiftData cache.
-3. Recently played tracks are shown on the home screen when idle.
+CarPlay code is included under `CarPlay/`. To run on a CarPlay simulator or device:
 
-### Replaceable API
+1. Request the **CarPlay Audio** entitlement from Apple.
+2. Set `CODE_SIGN_ENTITLEMENTS` to `Config/MoisesChallenge-CarPlay.entitlements` on the iOS target.
+3. Run with **I/O → External Displays → CarPlay** in Simulator.
 
-Swap `HTTPClient` or remote loaders in `CompositionRoot` without touching UI or ViewModels.
+## Apple Watch setup
 
-## Requirements
-
-- Xcode 16+
-- iOS 17+ (project targets latest SDK)
+1. Install the **watchOS 26.x** simulator runtime in Xcode.
+2. In Xcode, add an **Embed Watch Content** build phase on the iOS target pointing to `MoisesChallengeWatch`.
+3. Run the iOS app on a paired iPhone simulator; the watch receives recently played songs via WatchConnectivity.
 
 ## Run
 
-Open `MoisesChallenge.xcodeproj`, select the **MoisesChallenge** scheme, and run on a simulator or device.
+Open `MoisesChallenge.xcodeproj`, select **MoisesChallenge**, run on iPhone or iPad simulator.
+
+```bash
+xcodebuild -project MoisesChallenge.xcodeproj -scheme MoisesChallenge \
+  -destination 'platform=iOS Simulator,name=iPhone 16' build
+```
 
 ## Tests
 
 ```bash
-xcodebuild test -project MoisesChallenge.xcodeproj -scheme MoisesChallenge -destination 'platform=iOS Simulator,name=iPhone 16'
+xcodebuild test -project MoisesChallenge.xcodeproj -scheme MoisesChallenge \
+  -destination 'platform=iOS Simulator,name=iPhone 16' \
+  -only-testing:MoisesChallengeTests
 ```
-
-Tests cover pagination, cache fallback, cache decorator, recently played, and mapper validation.
 
 ## API
 
-Uses the public [iTunes Search API](https://developer.apple.com/library/archive/documentation/AudioVideo/Conceptual/iTuneSearchAPI/Searching.html).
+Uses the public [iTunes Search API](https://developer.apple.com/library/archive/documentation/AudioVideo/Conceptual/iTuneSearchAPI/Searching.html) with cumulative-limit pagination (iTunes ignores `offset` for music).
