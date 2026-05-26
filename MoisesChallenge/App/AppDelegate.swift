@@ -1,7 +1,10 @@
 import CarPlay
 import UIKit
 
+@MainActor
 final class AppDelegate: NSObject, UIApplicationDelegate {
+    var composition: CompositionRoot?
+
     func application(
         _ application: UIApplication,
         configurationForConnecting connectingSceneSession: UISceneSession,

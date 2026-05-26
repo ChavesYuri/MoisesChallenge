@@ -5,10 +5,19 @@ import UIKit
 final class CarPlayCoordinator {
     private let interfaceController: CPInterfaceController
     private let repository: SongRepository
+    private let playback: AudioPlayerService
+    private let nowPlaying: NowPlayingManaging
 
-    init(interfaceController: CPInterfaceController, repository: SongRepository) {
+    init(
+        interfaceController: CPInterfaceController,
+        repository: SongRepository,
+        playback: AudioPlayerService,
+        nowPlaying: NowPlayingManaging
+    ) {
         self.interfaceController = interfaceController
         self.repository = repository
+        self.playback = playback
+        self.nowPlaying = nowPlaying
     }
 
     func start() async {
@@ -79,18 +88,17 @@ final class CarPlayCoordinator {
 
     private func presentNowPlaying(for song: Song) {
         guard let url = song.previewURL else { return }
-        let player = SharedPlaybackService.shared
-        player.play(url: url)
+        playback.play(url: url)
 
-        NowPlayingManager.update(
+        nowPlaying.update(
             song: song,
             currentTime: 0,
             duration: song.durationSeconds,
             isPlaying: true
         )
 
-        let nowPlaying = CPNowPlayingTemplate.shared
-        interfaceController.pushTemplate(nowPlaying, animated: true, completion: nil)
+        let nowPlayingTemplate = CPNowPlayingTemplate.shared
+        interfaceController.pushTemplate(nowPlayingTemplate, animated: true, completion: nil)
 
         Task { try? await repository.markPlayed(song) }
     }
@@ -109,7 +117,7 @@ private final class SearchDelegate: NSObject, CPSearchTemplateDelegate {
         updatedSearchText searchText: String,
         completionHandler: @escaping ([CPListItem]) -> Void
     ) {
-        let term = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let term = searchText.normalizedSearchTerm
         guard !term.isEmpty else {
             completionHandler([])
             return

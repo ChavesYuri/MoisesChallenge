@@ -9,8 +9,8 @@ struct MoisesChallengeApp: App {
         WindowGroup {
             AppView(composition: composition)
                 .onAppear {
-                    AppServices.composition = composition
-                    WatchConnectivityService.shared.activate()
+                    appDelegate.composition = composition
+                    composition.watchSync.activate()
                 }
                 .task { await syncWatchLibrary(from: composition) }
         }
@@ -19,6 +19,6 @@ struct MoisesChallengeApp: App {
     @MainActor
     private func syncWatchLibrary(from composition: CompositionRoot) async {
         let recent = (try? await composition.repository.recentlyPlayed(limit: 12)) ?? []
-        WatchConnectivityService.shared.publish(recentlyPlayed: recent, currentSong: nil)
+        composition.watchSync.publish(recentlyPlayed: recent, currentSong: nil)
     }
 }

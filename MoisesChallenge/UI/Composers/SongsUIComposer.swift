@@ -3,12 +3,15 @@ import SwiftUI
 enum SongsUIComposer {
     @MainActor
     static func composed(
-        repository: SongRepository,
+        composition: CompositionRoot,
         onSelectSong: @escaping (Song) -> Void,
         onShowAlbum: @escaping (Song) -> Void
     ) -> AdaptiveSongsScreen {
         AdaptiveSongsScreen(
-            viewModel: SongsViewModel(repository: repository),
+            viewModel: SongsViewModel(
+                repository: composition.repository,
+                watchSync: composition.watchSync
+            ),
             onSelectSong: onSelectSong,
             onShowAlbum: onShowAlbum
         )

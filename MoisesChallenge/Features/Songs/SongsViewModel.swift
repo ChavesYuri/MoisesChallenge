@@ -21,12 +21,18 @@ final class SongsViewModel {
     private(set) var hasMorePages = true
 
     private let repository: SongRepository
+    private let watchSync: WatchLibraryPublisher
     private let pageSize: Int
     private var currentPage = 0
     private var currentTerm = ""
 
-    init(repository: SongRepository, pageSize: Int = 20) {
+    init(
+        repository: SongRepository,
+        watchSync: WatchLibraryPublisher,
+        pageSize: Int = 20
+    ) {
         self.repository = repository
+        self.watchSync = watchSync
         self.pageSize = pageSize
     }
 
@@ -35,7 +41,7 @@ final class SongsViewModel {
     }
 
     func submitSearch() async {
-        let term = normalizedSearchText
+        let term = searchText.normalizedSearchTerm
         guard !term.isEmpty else {
             songs = []
             state = .idle
@@ -74,7 +80,7 @@ final class SongsViewModel {
             try? await repository.markPlayed(song)
             await loadRecentlyPlayed()
             let recent = (try? await repository.recentlyPlayed(limit: 12)) ?? []
-            WatchConnectivityService.shared.publish(recentlyPlayed: recent, currentSong: song)
+            watchSync.publish(recentlyPlayed: recent, currentSong: song)
         }
     }
 
@@ -108,9 +114,5 @@ final class SongsViewModel {
     private func appendUnique(_ newSongs: [Song]) -> [Song] {
         let existingIDs = Set(songs.map(\.id))
         return songs + newSongs.filter { !existingIDs.contains($0.id) }
-    }
-
-    private var normalizedSearchText: String {
-        searchText.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }

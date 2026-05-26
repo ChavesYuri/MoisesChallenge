@@ -27,7 +27,7 @@ struct AppView: View {
     private var navigationContent: some View {
         NavigationStack(path: $path) {
             SongsUIComposer.composed(
-                repository: composition.repository,
+                composition: composition,
                 onSelectSong: { song in
                     path.append(Route.player(song))
                 },
@@ -40,7 +40,7 @@ struct AppView: View {
                 case .player(let song):
                     PlayerUIComposer.composed(
                         song: song,
-                        repository: composition.repository,
+                        composition: composition,
                         onShowAlbum: { path.append(Route.album(song)) }
                     )
                 case .album(let song):
