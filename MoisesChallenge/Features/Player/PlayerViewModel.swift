@@ -12,15 +12,18 @@ final class PlayerViewModel {
 
     private let repository: SongRepository
     private let audioPlayer: AudioPlayerService
+    private let nowPlaying: NowPlayingManaging
 
     init(
         song: Song,
         repository: SongRepository,
-        audioPlayer: AudioPlayerService = SharedPlaybackService.shared
+        audioPlayer: AudioPlayerService,
+        nowPlaying: NowPlayingManaging
     ) {
         self.song = song
         self.repository = repository
         self.audioPlayer = audioPlayer
+        self.nowPlaying = nowPlaying
         self.duration = song.durationSeconds > 0 ? song.durationSeconds : 30
     }
 
@@ -81,19 +84,18 @@ final class PlayerViewModel {
     }
 
     func disappear() {
-        NowPlayingManager.clear()
+        audioPlayer.stop()
+        isPlaying = false
+        currentTime = 0
+        nowPlaying.clear()
     }
 
     private func loadQueue() async {
-        guard let collectionId = song.collectionId else {
-            queueSongs = [song]
-            return
-        }
-        queueSongs = (try? await repository.albumSongs(collectionId: collectionId)) ?? [song]
+        queueSongs = await AlbumSongsQuery.songsOrFallback(for: song, repository: repository)
     }
 
     private func updateNowPlaying() {
-        NowPlayingManager.update(
+        nowPlaying.update(
             song: song,
             currentTime: currentTime,
             duration: duration,
@@ -102,7 +104,7 @@ final class PlayerViewModel {
     }
 
     private func configureRemoteCommands() {
-        NowPlayingManager.configureRemoteCommands(
+        nowPlaying.configureRemoteCommands(
             onPlay: { [weak self] in
                 guard let self, !isPlaying else { return }
                 togglePlayback()
