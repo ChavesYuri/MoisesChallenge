@@ -1,4 +1,5 @@
 import Foundation
+import SwiftData
 import Testing
 @testable import MoisesChallenge
 
@@ -9,7 +10,11 @@ struct MoisesChallengeTests {
             0: [.fixture(id: 1, name: "One"), .fixture(id: 2, name: "Two")],
             1: [.fixture(id: 3, name: "Three")]
         ])
-        let viewModel = SongsViewModel(repository: repository, pageSize: 2)
+        let viewModel = SongsViewModel(
+            repository: repository,
+            watchSync: FakeWatchLibraryPublisher(),
+            pageSize: 2
+        )
 
         viewModel.searchText = "Daft Punk"
         await viewModel.submitSearch()
@@ -26,6 +31,59 @@ struct MoisesChallengeTests {
             SearchRequest(term: "Daft Punk", page: 0, pageSize: 2),
             SearchRequest(term: "Daft Punk", page: 1, pageSize: 2)
         ])
+    }
+
+    @Test func songsViewModelSubmitSearchWithEmptyTermResetsState() async {
+        let repository = FakeSongRepository()
+        let viewModel = SongsViewModel(
+            repository: repository,
+            watchSync: FakeWatchLibraryPublisher()
+        )
+
+        viewModel.searchText = "   "
+        await viewModel.submitSearch()
+
+        #expect(viewModel.songs.isEmpty)
+        #expect(viewModel.state == .idle)
+        #expect(repository.requests.isEmpty)
+    }
+
+    @Test func songsViewModelRefreshReloadsCurrentSearch() async {
+        let repository = FakeSongRepository(pages: [
+            0: [.fixture(id: 1, name: "Fresh")]
+        ])
+        let viewModel = SongsViewModel(
+            repository: repository,
+            watchSync: FakeWatchLibraryPublisher()
+        )
+
+        viewModel.searchText = "query"
+        await viewModel.submitSearch()
+        repository.requests.removeAll()
+        await viewModel.refresh()
+
+        #expect(viewModel.state == .loaded)
+        #expect(repository.requests == [SearchRequest(term: "query", page: 0, pageSize: 20)])
+    }
+
+    @Test func songsViewModelLoadMoreFailureRollsBackPage() async throws {
+        let repository = FakeSongRepository(pages: [
+            0: [.fixture(id: 1, name: "One"), .fixture(id: 2, name: "Two")]
+        ])
+        repository.pages[1] = nil
+        let failingRepository = FailingSearchRepository(base: repository)
+        let viewModel = SongsViewModel(
+            repository: failingRepository,
+            watchSync: FakeWatchLibraryPublisher(),
+            pageSize: 2
+        )
+
+        viewModel.searchText = "query"
+        await viewModel.submitSearch()
+        await viewModel.loadMoreIfNeeded(currentSong: try #require(viewModel.songs.last))
+
+        #expect(viewModel.state == .error("offline"))
+        #expect(viewModel.songs.map(\.id) == [1, 2])
     }
 
     @Test func repositoryFallsBackToCacheWhenRemoteFails() async throws {
@@ -53,15 +111,31 @@ struct MoisesChallengeTests {
         #expect(cache.saved.map(\.id) == [1])
     }
 
-    @Test func markPlayedRefreshesRecentlyPlayed() async {
+    @Test func repositoryFallsBackToCacheForAlbumSongs() async throws {
+        let cache = FakeSongCache()
+        cache.stored = [.fixture(id: 5, name: "Album Track", collectionId: 777)]
+        let repository = MainSongRepository(
+            remoteSearch: FailingSongSearchLoader(),
+            remoteAlbum: FailingAlbumSongsLoader(),
+            cache: cache
+        )
+
+        let songs = try await repository.albumSongs(collectionId: 777)
+        #expect(songs.map(\.id) == [5])
+    }
+
+    @Test func markPlayedRefreshesRecentlyPlayedAndPublishesToWatch() async {
         let song = Song.fixture(id: 99, name: "Played")
         let repository = FakeSongRepository(recent: [])
-        let viewModel = SongsViewModel(repository: repository)
+        let watchSync = FakeWatchLibraryPublisher()
+        let viewModel = SongsViewModel(repository: repository, watchSync: watchSync)
 
         viewModel.markPlayed(song)
         try? await Task.sleep(for: .milliseconds(100))
 
         #expect(repository.playedSongs == [song])
+        #expect(watchSync.publishedPayloads.count == 1)
+        #expect(watchSync.publishedPayloads.first?.currentSong?.id == 99)
     }
 
     @Test func cumulativePaginationReturnsDistinctPages() {
@@ -113,104 +187,32 @@ struct MoisesChallengeTests {
     }
 }
 
-struct SearchRequest: Equatable {
-    let term: String
-    let page: Int
-    let pageSize: Int
-}
-
 @MainActor
-final class FakeSongRepository: SongRepository {
-    var pages: [Int: [Song]]
-    var recent: [Song]
-    var requests: [SearchRequest] = []
-    var playedSongs: [Song] = []
+private final class FailingSearchRepository: SongRepository {
+    private let base: FakeSongRepository
+    private var searchCount = 0
 
-    init(pages: [Int: [Song]] = [:], recent: [Song] = []) {
-        self.pages = pages
-        self.recent = recent
+    init(base: FakeSongRepository) {
+        self.base = base
     }
 
     func searchSongs(term: String, page: Int, pageSize: Int) async throws -> Paginated<Song> {
-        requests.append(SearchRequest(term: term, page: page, pageSize: pageSize))
-        let items = pages[page] ?? []
-        return Paginated(items: items, hasMore: items.count == pageSize)
+        searchCount += 1
+        if searchCount > 1 {
+            throw NSError(domain: "test", code: 1, userInfo: [NSLocalizedDescriptionKey: "offline"])
+        }
+        return try await base.searchSongs(term: term, page: page, pageSize: pageSize)
     }
 
     func albumSongs(collectionId: Int) async throws -> [Song] {
-        pages.values.flatMap { $0 }.filter { $0.collectionId == collectionId }
+        try await base.albumSongs(collectionId: collectionId)
     }
 
     func recentlyPlayed(limit: Int) async throws -> [Song] {
-        Array(recent.prefix(limit))
+        try await base.recentlyPlayed(limit: limit)
     }
 
     func markPlayed(_ song: Song) async throws {
-        playedSongs.append(song)
-        recent.insert(song, at: 0)
-    }
-}
-
-struct FailingSongSearchLoader: SongSearchLoader {
-    func search(term: String, limit: Int, offset: Int) async throws -> SongSearchPage {
-        throw SongLoaderError.connectivity
-    }
-}
-
-struct FailingAlbumSongsLoader: AlbumSongsLoader {
-    func loadAlbumSongs(collectionId: Int) async throws -> [Song] {
-        throw SongLoaderError.connectivity
-    }
-}
-
-struct StubSongSearchLoader: SongSearchLoader {
-    let results: [Song]
-
-    func search(term: String, limit: Int, offset: Int) async throws -> SongSearchPage {
-        SongSearchPage(items: results, hasMore: false)
-    }
-}
-
-@MainActor
-final class FakeSongCache: SongCache {
-    var stored: [Song] = []
-    var saved: [Song] = []
-    var recentlyPlayedSongs: [Song] = []
-    var markedPlayed: [Song] = []
-
-    func save(_ songs: [Song]) async throws {
-        saved = songs
-        stored.append(contentsOf: songs)
-    }
-
-    func songs(matching term: String, limit: Int, offset: Int) async throws -> [Song] {
-        Array(stored.dropFirst(offset).prefix(limit))
-    }
-
-    func recentlyPlayed(limit: Int) async throws -> [Song] {
-        Array(recentlyPlayedSongs.prefix(limit))
-    }
-
-    func markPlayed(_ song: Song) async throws {
-        markedPlayed.append(song)
-    }
-}
-
-extension Song {
-    static func fixture(id: Int, name: String, collectionId: Int = 100) -> Song {
-        Song(
-            id: id,
-            trackName: name,
-            artistName: "Artist \(id)",
-            collectionName: "Album",
-            artworkURL100: nil,
-            previewURL: nil,
-            trackPrice: nil,
-            currency: nil,
-            primaryGenreName: "Pop",
-            releaseDate: nil,
-            trackTimeMillis: 180000,
-            collectionId: collectionId
-        )
+        try await base.markPlayed(song)
     }
 }
