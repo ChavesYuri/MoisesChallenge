@@ -17,7 +17,7 @@ final class LocalSongCacheLoader: SongCache {
     }
 
     func songs(matching term: String, limit: Int, offset: Int) async throws -> [Song] {
-        let normalizedTerm = term.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let normalizedTerm = term.normalizedCacheSearchTerm
         let descriptor = FetchDescriptor<CachedSong>(
             sortBy: [SortDescriptor(\.cachedAt, order: .reverse)]
         )

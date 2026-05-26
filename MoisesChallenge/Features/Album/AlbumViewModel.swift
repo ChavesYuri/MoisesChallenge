@@ -23,14 +23,14 @@ final class AlbumViewModel {
     }
 
     func load() async {
-        guard let collectionId = seedSong.collectionId else {
+        guard seedSong.collectionId != nil else {
             songs = [seedSong]
             state = .loaded
             return
         }
 
         do {
-            songs = try await repository.albumSongs(collectionId: collectionId)
+            songs = try await AlbumSongsQuery.songs(for: seedSong, repository: repository)
             state = songs.isEmpty ? .empty : .loaded
         } catch {
             state = .error(error.localizedDescription)
