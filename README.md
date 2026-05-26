@@ -1,6 +1,6 @@
 # Moises Music Challenge
 
-iOS music search app built with **Swift 6**, **SwiftUI**, **MVVM**, **Swift concurrency**, **SwiftData**, and a replaceable network layer. Architecture follows the layering patterns used in EssentialFeed and EssentialApp.
+iOS music search app built with **Swift 6**, **SwiftUI**, **MVVM**, **Swift concurrency**, **SwiftData**, and a replaceable network layer.
 
 ## Platforms
 
