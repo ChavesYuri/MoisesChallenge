@@ -3,8 +3,6 @@ import Foundation
 
 @MainActor
 final class SharedPlaybackService: AudioPlayerService {
-    static let shared = SharedPlaybackService()
-
     private let playerService = AVAudioPlayerService()
 
     var onTimeUpdate: ((Double, Double) -> Void)? {
@@ -16,7 +14,7 @@ final class SharedPlaybackService: AudioPlayerService {
     var currentTime: Double { playerService.currentTime }
     var duration: Double { playerService.duration }
 
-    private init() {
+    init() {
         configureAudioSession()
     }
 

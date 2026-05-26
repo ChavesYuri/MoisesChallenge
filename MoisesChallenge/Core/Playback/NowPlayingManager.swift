@@ -3,13 +3,18 @@ import MediaPlayer
 import UIKit
 
 @MainActor
-enum NowPlayingManager {
-    private static var artworkTask: Task<Void, Never>?
-    private static var loadedArtworkSongID: Int?
-    private static var cachedArtwork: MPMediaItemArtwork?
-    private static var lastInfo: [String: Any] = [:]
+final class NowPlayingManager: NowPlayingManaging {
+    private let httpClient: HTTPClient
+    private var artworkTask: Task<Void, Never>?
+    private var loadedArtworkSongID: Int?
+    private var cachedArtwork: MPMediaItemArtwork?
+    private var lastInfo: [String: Any] = [:]
 
-    static func update(song: Song, currentTime: TimeInterval, duration: TimeInterval, isPlaying: Bool) {
+    init(httpClient: HTTPClient) {
+        self.httpClient = httpClient
+    }
+
+    func update(song: Song, currentTime: TimeInterval, duration: TimeInterval, isPlaying: Bool) {
         if loadedArtworkSongID != song.id {
             artworkTask?.cancel()
             artworkTask = nil
@@ -67,7 +72,7 @@ enum NowPlayingManager {
         }
     }
 
-    static func configureRemoteCommands(
+    func configureRemoteCommands(
         onPlay: @escaping () -> Void,
         onPause: @escaping () -> Void,
         onSkipForward: @escaping () -> Void,
@@ -95,7 +100,7 @@ enum NowPlayingManager {
         center.skipBackwardCommand.addTarget { _ in onSkipBackward(); return .success }
     }
 
-    static func clear() {
+    func clear() {
         artworkTask?.cancel()
         artworkTask = nil
         loadedArtworkSongID = nil
@@ -105,14 +110,16 @@ enum NowPlayingManager {
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
     }
 
-    private static func sanitizedTime(_ value: TimeInterval) -> TimeInterval {
+    private func sanitizedTime(_ value: TimeInterval) -> TimeInterval {
         value.isFinite && value >= 0 ? value : 0
     }
 
-    private static func loadImage(from url: URL) async -> UIImage? {
-        await Task.detached(priority: .utility) {
-            guard let (data, _) = try? await URLSession.shared.data(from: url) else { return nil }
-            return UIImage(data: data)
+    private func loadImage(from url: URL) async -> UIImage? {
+        await Task.detached(priority: .utility) { [httpClient] in
+            guard let (data, response) = try? await httpClient.get(from: url),
+                  (200...299).contains(response.statusCode),
+                  let image = UIImage(data: data) else { return nil }
+            return image
         }.value
     }
 }

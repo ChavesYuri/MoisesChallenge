@@ -2,10 +2,8 @@ import Foundation
 import WatchConnectivity
 
 @MainActor
-final class WatchConnectivityService: NSObject, WCSessionDelegate {
-    static let shared = WatchConnectivityService()
-
-    private override init() {
+final class WatchConnectivityService: NSObject, WCSessionDelegate, WatchLibraryPublisher {
+    override init() {
         super.init()
     }
 
@@ -36,32 +34,4 @@ final class WatchConnectivityService: NSObject, WCSessionDelegate {
     nonisolated func sessionDidDeactivate(_ session: WCSession) {
         session.activate()
     }
-}
-
-struct WatchSong: Codable, Identifiable, Hashable {
-    let id: Int
-    let trackName: String
-    let artistName: String
-    let collectionName: String
-    let artworkURLString: String?
-    let previewURLString: String?
-    let collectionId: Int?
-
-    init(_ song: Song) {
-        id = song.id
-        trackName = song.trackName
-        artistName = song.artistName
-        collectionName = song.collectionName
-        artworkURLString = song.artworkURL100?.absoluteString
-        previewURLString = song.previewURL?.absoluteString
-        collectionId = song.collectionId
-    }
-
-    var artworkURL: URL? { artworkURLString.flatMap(URL.init(string:)) }
-    var previewURL: URL? { previewURLString.flatMap(URL.init(string:)) }
-}
-
-struct WatchLibraryPayload: Codable {
-    let recentlyPlayed: [WatchSong]
-    let currentSong: WatchSong?
 }
