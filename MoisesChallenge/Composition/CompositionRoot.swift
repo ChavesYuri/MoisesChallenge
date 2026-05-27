@@ -24,10 +24,11 @@ final class CompositionRoot {
         let context = ModelContext(modelContainer)
         let cache = LocalSongCacheLoader(context: context)
         let remoteSearch = RemoteSongSearchLoader(client: httpClient)
+        let remoteSongSearchLoaderCacheDecorator = SongSearchLoaderCacheDecorator(decoratee: remoteSearch, cache: cache)
         let remoteAlbum = RemoteAlbumSongsLoader(client: httpClient)
 
         repository = MainSongRepository(
-            remoteSearch: remoteSearch,
+            remoteSearch: remoteSongSearchLoaderCacheDecorator,
             remoteAlbum: remoteAlbum,
             cache: cache
         )

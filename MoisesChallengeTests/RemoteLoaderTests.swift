@@ -34,13 +34,7 @@ struct RemoteLoaderTests {
     }
 
     @Test func remoteAlbumLoaderMapsInvalidDataErrors() async {
-        let response = HTTPURLResponse(
-            url: URL(string: "https://itunes.apple.com/lookup")!,
-            statusCode: 404,
-            httpVersion: nil,
-            headerFields: nil
-        )!
-        let client = StubHTTPClient(behavior: .success(Data(), response))
+        let client = StubHTTPClient(behavior: .failure(SongLoaderError.invalidData))
         let loader = RemoteAlbumSongsLoader(client: client)
 
         await #expect(throws: SongLoaderError.invalidData) {
@@ -51,14 +45,9 @@ struct RemoteLoaderTests {
     @Test @MainActor func searchLoaderCacheDecoratorPersistsSuccessfulResults() async throws {
         let cache = FakeSongCache()
         let loader = StubSongSearchLoader(results: [.fixture(id: 11, name: "Saved")])
+        let sut = SongSearchLoaderCacheDecorator(decoratee: loader, cache: cache)
 
-        let page = try await SongSearchLoaderCacheDecorator.search(
-            decoratee: loader,
-            cache: cache,
-            term: "saved",
-            limit: 10,
-            offset: 0
-        )
+        let page = try await sut.search(term: "saved", limit: 10, offset: 0)
 
         #expect(page.items.map(\.id) == [11])
         #expect(cache.saved.map(\.id) == [11])

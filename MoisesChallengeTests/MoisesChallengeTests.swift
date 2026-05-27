@@ -101,8 +101,12 @@ struct MoisesChallengeTests {
 
     @Test func repositoryCachesSuccessfulRemoteLoads() async throws {
         let cache = FakeSongCache()
+        let remoteSearch = SongSearchLoaderCacheDecorator(
+            decoratee: StubSongSearchLoader(results: [.fixture(id: 1, name: "Fresh")]),
+            cache: cache
+        )
         let repository = MainSongRepository(
-            remoteSearch: StubSongSearchLoader(results: [.fixture(id: 1, name: "Fresh")]),
+            remoteSearch: remoteSearch,
             remoteAlbum: FailingAlbumSongsLoader(),
             cache: cache
         )

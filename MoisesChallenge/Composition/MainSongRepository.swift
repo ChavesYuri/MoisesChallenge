@@ -23,9 +23,7 @@ final class MainSongRepository: SongRepository {
     func searchSongs(term: String, page: Int, pageSize: Int) async throws -> Paginated<Song> {
         let offset = page * pageSize
         do {
-            let page = try await SongSearchLoaderCacheDecorator.search(
-                decoratee: remoteSearch,
-                cache: cache,
+            let page = try await remoteSearch.search(
                 term: term,
                 limit: pageSize,
                 offset: offset
